@@ -43,7 +43,7 @@ wals(x, ...)
 }
 \arguments{
 \item{x}{Design matrix of focus regressors. Usually includes a constant
-(column full of 1s) and can be generated using model.matrix().}
+(column full of 1s) and can be generated using \code{\link[stats]{model.matrix}}.}
 
 \item{...}{Arguments for workhorse \code{\link[WALS]{walsFit}}.}
 
@@ -53,10 +53,10 @@ a symbolic description of the model to be fitted.
 The details of model specification are given under ‘Details’.}
 
 \item{data}{an optional data frame, list or environment
-(or object coercible by as.data.frame to a data frame) containing the
-variables in the model. If not found in data, the variables are taken from
-environment(formula), typically the environment which the function is called
-from.}
+(or object coercible by \code{\link[base]{as.data.frame}} to a data frame)
+containing the variables in the model. If not found in \code{data}, the variables
+are taken from \code{environment(formula)}, typically the environment which
+the function is called from.}
 
 \item{subset}{an optional vector specifying a subset of observations to be
 used in the fitting process.}
@@ -83,7 +83,7 @@ the return.}
 estimated. See \code{\link[WALS]{walsFit}} for more details.}
 
 \item{x2}{Design matrix of auxiliary regressors. Usually does not include
-a constant column and can also be generated using model.matrix().}
+a constant column and can also be generated using \code{\link[stats]{model.matrix}}.}
 
 \item{y}{Response as vector.}
 }
@@ -92,7 +92,7 @@ a constant column and can also be generated using model.matrix().}
 \code{"wals"}. This is a list that contains all elements returned from
 \code{\link[WALS]{walsFit}} and additionally
 \item{y}{If \code{keepY = TRUE}, contains the response vector.}
-\item{x}{list. If \code{keepX} is true, then it is a list with elements
+\item{x}{list. If \code{keepX = TRUE}, then it is a list with elements
 \code{x1} and \code{x2} containing the design matrices of the focus and
 auxiliary regressors, respectively.}
 \item{weights}{returns the argument \code{weights}.}
@@ -130,14 +130,14 @@ Weighted-Average Least Squares method by
 \details{
 R port of MATLAB code wals.m (version 2.0, revision 18 December 2013)
 by J.R. Magnus and G. De Luca, available from
-\href{https://www.janmagnus.nl/items/WALS.pdf}{https://www.janmagnus.nl/items/WALS.pdf}.
+\url{https://www.janmagnus.nl/items/WALS.pdf}.
 Calculates WALS estimates when focus regressors (X1) are present in all
 submodels and model averaging takes place over the auxiliary regressors (X2).
 
 Formulas should always contain two parts, i.e. they should be of the form
-"y ~ X11 + X12 | X21 + X22", where the variables before "|" are the focus
-regressors (includes a constant by default) and the ones after "|" are the
-auxiliary regressors.
+"\code{y ~ X11 + X12 | X21 + X22}", where the variables before "\code{|}" are
+the focus regressors (includes a constant by default) and the ones after
+"\code{|}" are the auxiliary regressors.
 
 \strong{WARNING:} Interactions in formula do not work properly yet.
 It is recommended to manually create the interactions beforehand and then
@@ -145,9 +145,8 @@ to insert them as 'linear terms' in the formula.
 
 \code{wals.default()} raises an error if \code{x} is not an object of class
 \code{"matrix"} or a class that extends \code{"matrix"}. Otherwise it calls
-\code{wals.matrix()}. It is a modified version of
-\code{\link[mboost]{glmboost.default}} from the \code{\link[mboost]{mboost}}
-package version 2.9-8 (2023-09-06) \insertCite{mboost}{WALS}.
+\code{wals.matrix()}. It is a modified version of \code{glmboost.default}
+from the \code{mboost} package version 2.9-8 (2023-09-06) \insertCite{mboost}{WALS}.
 }
 \examples{
 ## Replicate table on p. 534 of De Luca & Magnus (2011)

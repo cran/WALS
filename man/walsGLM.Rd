@@ -19,7 +19,7 @@ walsGLM(x, ...)
   weights = NULL,
   offset = NULL,
   prior = weibull(),
-  controlGLMfit = list(),
+  controlInitGLM = controlGLM(),
   model = TRUE,
   keepY = TRUE,
   keepX = FALSE,
@@ -41,7 +41,7 @@ walsGLM(x, ...)
   weights = NULL,
   offset = NULL,
   prior = weibull(),
-  controlGLMfit = list(),
+  controlInitGLM = controlGLM(),
   keepY = TRUE,
   keepX = FALSE,
   iterate = FALSE,
@@ -56,7 +56,7 @@ walsGLM(x, ...)
 }
 \arguments{
 \item{x}{Design matrix of focus regressors. Usually includes a constant
-(column full of 1s) and can be generated using model.matrix().}
+(column full of 1s) and can be generated using \code{\link[stats]{model.matrix}}.}
 
 \item{...}{Arguments for workhorse \code{\link[WALS]{walsGLMfit}}.}
 
@@ -68,10 +68,10 @@ The details of model specification are given under ‘Details’.}
 \item{family}{Object of class \code{"\link[WALS]{familyWALS}"}.}
 
 \item{data}{an optional data frame, list or environment
-(or object coercible by as.data.frame to a data frame) containing the
-variables in the model. If not found in data, the variables are taken from
-environment(formula), typically the environment which the function is called
-from.}
+(or object coercible by \code{\link[base]{as.data.frame}} to a data frame)
+containing the variables in the model. If not found in \code{data}, the variables
+are taken from \code{environment(formula)}, typically the environment which
+the function is called from.}
 
 \item{subset}{an optional vector specifying a subset of observations to be
 used in the fitting process.}
@@ -85,8 +85,8 @@ used in the fitting process.}
 \item{prior}{Object of class \code{"\link[WALS]{familyPrior}"}. For example
 \code{\link[WALS]{weibull}} or \code{\link[WALS]{laplace}}.}
 
-\item{controlGLMfit}{Controls estimation of starting values for one-step ML,
-passed to \code{\link[stats]{glm.fit}}. See also \code{\link[stats]{glm.control}}.}
+\item{controlInitGLM}{Controls estimation of starting values for one-step ML,
+see \code{\link[WALS]{controlGLM}}.}
 
 \item{model}{if \code{TRUE} (default), then the model.frame is stored in
 the return.}
@@ -102,22 +102,22 @@ estimates as starting values.}
 
 \item{tol}{Only used if \code{iterate = TRUE} and \code{nIt = NULL}.
 If the Euclidean distance between the previous and current coefficient vector
-divided by the square root of the length of the vector falls below tol, then
-the algorithm stops. See below for more details.}
+divided by the square root of the length of the vector falls below \code{tol},
+then the algorithm stops. See \code{\link[WALS]{walsGLMfitIterate}} for more details.}
 
 \item{maxIt}{Only used if \code{iterate = TRUE} and \code{nIt = NULL}. Aborts
-iterative fitting when number of iterations exceed maxIt.}
+iterative fitting when number of iterations exceed \code{maxIt}.}
 
-\item{nIt}{Only used if iterate = TRUE. If this is specified, then tol is ignored
-and the algorithm iterates nIt times. This option should not be used unless
-the user has a specific reason to run the algorithm nIt times, e.g. for
-replication purposes.}
+\item{nIt}{Only used if \code{iterate = TRUE}. If this is specified, then
+\code{tol} is ignored and the algorithm iterates \code{nIt} times. This option
+should not be used unless the user has a specific reason to run the algorithm
+\code{nIt} times, e.g. for replication purposes.}
 
 \item{verbose}{If \code{verbose = TRUE}, then it prints the iteration process
 (only relevant if \code{iterate = TRUE}).}
 
 \item{x2}{Design matrix of auxiliary regressors. Usually does not include
-a constant column and can also be generated using model.matrix().}
+a constant column and can also be generated using \code{\link[stats]{model.matrix}}.}
 
 \item{y}{Response as vector.}
 }
@@ -148,17 +148,17 @@ of class \code{"matrix"} or a class that extends \code{"matrix"}. Otherwise
 returns an object of class \code{"walsGLMmatrix"}. See above for more details.
 }
 \description{
-Fits a generalized linear model (GLM) using the Weighted-Average Least Squares
-method described in \insertCite{deluca2018glm;textual}{WALS}.
+Performs model averaging of generalized linear models (GLMs) using the
+Weighted-Average Least Squares method described in \insertCite{deluca2018glm;textual}{WALS}.
 }
 \details{
 Computes WALS estimates when focus regressors (X1) are present in all
 submodels and model averaging takes place over the auxiliary regressors (X2).
 
 Formulas should always contain two parts, i.e. they should be of the form
-"y ~ X11 + X12 | X21 + X22", where the variables before "|" are the focus
-regressors (includes a constant by default) and the ones after "|" are the
-auxiliary regressors.
+"\code{y ~ X11 + X12 | X21 + X22}", where the variables before "\code{|}" are
+the focus regressors (includes a constant by default) and the ones after
+"\code{|}" are the auxiliary regressors.
 
 \strong{WARNING:} Interactions in formula do work work properly yet.
 It is recommended to manually create the interactions beforehand and then
@@ -166,9 +166,8 @@ to insert them as 'linear terms' in the formula.
 
 \code{walsGLM.default()} raises an error if \code{x} is not an object of class
 \code{"matrix"} or a class that extends \code{"matrix"}. Otherwise it calls
-\code{walsGLM.matrix()}. It is a modified version of
-\code{\link[mboost]{glmboost.default}} from the \code{\link[mboost]{mboost}}
-package version 2.9-8 (2023-09-06) \insertCite{mboost}{WALS}.
+\code{walsGLM.matrix()}. It is a modified version of \code{glmboost.default}
+from the \code{mboost} package version 2.9-8 (2023-09-06) \insertCite{mboost}{WALS}.
 }
 \examples{
 data("HMDA", package = "AER")

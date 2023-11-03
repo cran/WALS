@@ -16,7 +16,7 @@ transformY <- function(y, X1bar, X2bar, beta1, beta2, etaStart, vBar, muBar,
 
   as.vector(X1bar %*% beta1  + X2bar %*% beta2 + uBar)
 }
-#-------------------------------------------------------------------------------
+
 
 #' Multiplies all rows of matrix X with vector y
 #' @noRd
@@ -32,19 +32,19 @@ multAllRows <- function(X, y) {
 #' \eqn{\bar{Z}_2}, i.e. to perform \eqn{\bar{Z}_2 = \bar{X}_2 \bar{\Delta}_2 \bar{\Xi}^{-1/2}}.
 #' For WALS in the linear regression model, the variables do not have a "bar".
 #'
-#' @param Z2s Matrix from which we take negative square root for
-#' \eqn{X2 * Delta2 * Z2s^(1/2)}.
+#' @param Z2s Matrix for which we take negative square root in
+#' \eqn{X2 * Delta2 * Z2s^{1/2}}.
 #' @param X2 Design matrix of auxiliary regressors to be transformed to Z2
 #' @param Delta2 Scaling matrix such that diagonal of
-#' \eqn{\bar{\Delta}_2 \bar{X}_2^{\top} \bar{M}_1 \Delta_{2}} is one (ignored
-#' scaling by \eqn{n} because not needed in code).
+#' \eqn{\bar{\Delta}_2 \bar{X}_2^{\top} \bar{M}_1 \bar{X}_2 \Delta_{2}} is one
+#' (ignored scaling by \eqn{n} because not needed in code).
 #' See \insertCite{deluca2018glm;textual}{WALS}
 #' @param SVD If \code{TRUE}, uses \code{\link[base]{svd}} to compute eigendecomposition
-#' of Z2s, otherwise uses \code{\link[base]{eigen}}.
+#' of \code{Z2s}, otherwise uses \code{\link[base]{eigen}}.
 #' @param postmult If \code{TRUE}, then it uses
-#' \eqn{Z2s^{-1/2} = H \Lambda^{-1/2} H^{\top}}, where \eqn{H} contains
-#' the eigenvectors of Z2s in its columns and \eqn{\Lambda} the corresponding
-#' eigenvalues. If \code{FALSE} it uses \eqn{Z2s^{-1/2} = H \Lambda^{-1/2}}.
+#' \eqn{Z2s^{-1/2} = T \Lambda^{-1/2} T^{\top}}, where \eqn{T} contains
+#' the eigenvectors of \eqn{Z2s} in its columns and \eqn{\Lambda} the corresponding
+#' eigenvalues. If \code{FALSE} it uses \eqn{Z2s^{-1/2} = T \Lambda^{-1/2}}.
 #'
 #' @section On the "semiorthogonal-type" transformation:
 #' For WALS GLM (and WALS in the linear regression model),
@@ -60,50 +60,37 @@ multAllRows <- function(X, y) {
 #' causes \eqn{\bar{M}_1} to not be idempotent anymore, see
 #' the section "Transformed model" in \insertCite{huynhwalsnb;textual}{WALS}.
 #'
-#' The transformation is the same as for WALS in the linear
-#' regression model, note however, that the definition of \eqn{\Xi} in eq. (12)
-#' of \insertCite{magnus2016wals;textual}{WALS} differs from eq. (9) of
-#' \insertCite{deluca2018glm;textual}{WALS}: In
-#' \insertCite{magnus2016wals;textual}{WALS}
-#'
-#' \deqn{\Xi = diag(\lambda_1, \lambda_2, ...)}
-#'
-#' defines the diagonal matrix of the eigenvalues of
-#' \eqn{\Delta_2 X_{2}^{\top} M_{1} X_{2} \Delta_2}. The transformation then uses
-#'
-#' \deqn{Z_{2} = X_2 \Delta_2 T \Xi^{-1/2},}
-#'
-#' where $T$ contains the eigenvectors of
-#' \eqn{\Delta_2 X_{2}^{\top} M_{1} X_{2} \Delta_2} in the columns.
-#'
-#' In contrast,
-#' \insertCite{deluca2018glm;textual}{WALS} defines
-#'
-#' \deqn{\Xi = \Delta_2 X_{2}^{\top} M_{1} X_{2} \Delta_2}
-#'
-#' (ignored scaling by \eqn{n} and notation with bar for easier comparison),
-#' then the transformation is
-#'
-#' \deqn{Z_2 = X_2 \Delta_2 \Xi^{-1/2}.}
-#'
 #'
 #' @section On the use of \code{postmult = TRUE}:
-#' The transformation triggered by \code{postmult = TRUE}
-#' \eqn{Z2s^{-1/2} = H \Lambda^{-1/2} H^{\top}} is used in
-#' \insertCite{huynhwalsnb;textual}{WALS}, whereas \code{postmult = FALSE}
-#' uses \eqn{Z2s^{-1/2} = H \Lambda^{-1/2}} which is used in the original MATLAB
-#' code for WALS in the linear regression model
-#' \insertCite{magnus2010growth,deluca2011stata,kumar2013normallocation,magnus2016wals}{WALS},
-#' see eq. (12) of \insertCite{magnus2016wals;textual}{WALS} for more details.
+#' The transformation of the auxiliary regressors \eqn{Z_2} for linear WALS in
+#' eq. (12) of \insertCite{magnus2016wals;textual}{WALS} differs from the
+#' transformation for WALS GLM (and WALS NB) in eq. (9) of
+#' \insertCite{deluca2018glm;textual}{WALS}:
+#'
+#' In \insertCite{magnus2016wals;textual}{WALS} the transformed auxiliary
+#' regressors are
+#'
+#' \deqn{Z_{2} = X_2 \Delta_2 T \Lambda^{-1/2},}
+#'
+#' where \eqn{T} contains the eigenvectors of
+#' \eqn{\Xi = \Delta_2 X_{2}^{\top} M_{1} X_{2} \Delta_2} in the columns and
+#' \eqn{\Lambda} the respective eigenvalues. This definition is used when
+#' \code{postmult = FALSE}.
+#'
+#' In contrast, \insertCite{deluca2018glm;textual}{WALS} defines
+#'
+#' \deqn{Z_2 = X_2 \Delta_2 T \Lambda^{-1/2} T^{\top},}
+#'
+#' where we ignored scaling by \eqn{n} and the notation with "bar" for easier
+#' comparison. This definition is used when \code{postmult = TRUE} and is
+#' strongly preferred for \code{\link[WALS]{walsGLM}} and \code{\link[WALS]{walsNB}}.
+#'
+#' See \insertCite{huynhwals;textual}{WALS} for more details.
 #'
 #' @references
 #' \insertAllCited{}
 #'
 semiorthogonalize <- function(Z2s, X2, Delta2, SVD = TRUE, postmult = FALSE) {
-  # For walsNB, this transformation of X2 is not a semiorthogonal transformation
-  # because M1 is not idempotent (see chapter on transformed model in walsNB.)
-
-
   if (SVD) { # use SVD to get eigenvectors and -values
     svdZ2s <- svd(Z2s)
     eigenVecs <- svdZ2s$u
@@ -114,23 +101,16 @@ semiorthogonalize <- function(Z2s, X2, Delta2, SVD = TRUE, postmult = FALSE) {
     eigenVals <- eigenZ2s$values
   }
 
-
   # check "numerical" rank of Z2s
   order <- max(dim(eigenVecs))
   rank <- sum(eigenVals > .Machine$double.eps)
 
   if (rank < order) stop("Z2s matrix is close to multicollinearity")
 
-
-  # Z2 <- multAllRows(X2, Delta2) # X2 * Delta2
-  # Ts <- multAllRows(eigenZ2s$vectors, 1.0 / sqrt(eigenZ2s$values)) # T * Xi^(-.5)
-
   # Computes "sort of" Delta2 * Xi^{-1/2} (Z2s in code) without postmultiplication
-  # by eigenVecs.
-  # Xi^{-1/2} is not complete, instead computes
+  # by eigenVecs. Xi^{-1/2} is not complete, instead computes
   # Delta2 * T * Lambda^{-1/2}, where Xi = T * Lambda * T' (EVD).
-  # This is used in DeLuca et al. (2018), WALS GLM paper, as it reuses in the
-  # algo for linear regression in  Magnus & DeLuca, 2016, WALS Survey, p.126, eq. (12).
+  # This is used in  Magnus & DeLuca, 2016, WALS Survey, p.126, eq. (12).
   D2 <- multAllRows(Delta2*eigenVecs, 1.0 / sqrt(eigenVals))
 
   # postmult uses proper Delta2 * Xi^{-1/2} computed by EVD, i.e.
@@ -157,9 +137,9 @@ semiorthogonalize <- function(Z2s, X2, Delta2, SVD = TRUE, postmult = FALSE) {
 #' was used, then D2 = \eqn{\Delta_2 T \Lambda^{-1/2}}, where \eqn{T} are the
 #' eigenvectors of \eqn{\Xi} and \eqn{\Lambda} the diagonal matrix containing
 #' the corresponding eigenvalues. If \code{postmult = TRUE} was used, then
-#' D2 = \eqn{\Delta_2 T \Lambda^{-1/2} T' = \Delta_2 \Xi^{-1/2}}.
-#' @param sigma Prespecified or estimated standard error of the error term.
-#' @param Z1inv \eqn{(Z_{1}' Z_{1})^{-1}}.
+#' D2 = \eqn{\Delta_2 T \Lambda^{-1/2} T^{\top} = \Delta_2 \Xi^{-1/2}}.
+#' @param sigma Prespecified or estimated standard deviation of the error term.
+#' @param Z1inv \eqn{(Z_{1}^{\top} Z_{1})^{-1}}.
 #' @param method Character. \eqn{\hat{\gamma}_1} is obtained from a linear
 #' regression of \eqn{Z_1} on pseudo-responses \eqn{y - Z_2 \hat{\gamma}_2}.
 #' If \code{method = original}, then we use \code{\link[stats]{lm.fit}} to perform
@@ -232,7 +212,7 @@ gammaToBeta <- function(posterior, y, Z1, Z2, Delta1, D2, sigma, Z1inv,
 #' @param singularValues Vector of singular values.
 #' @param tol Absolute tolerance, singular if \code{min(singularValues) < tol}
 #' @param rtol Relative tolerance, singular if
-#'        \code{min(singularValues) / max(singularValues) > rtol}
+#'        \code{min(singularValues) / max(singularValues) < rtol}
 #' @param digits The number significant digits to show in case a
 #' warning is triggered by singularity.
 #'
@@ -297,7 +277,7 @@ genNewdata <- function(terms, contrasts, newdata, na.action, xlev) {
   ## HACK ##
   # drop constant from X2...
   # TODO: Can we solve this more elegantly?
-  X2 <- X2[, -1L]
+  X2 <- X2[, -1L, drop = FALSE]
 
   return(list(X1 = X1, X2 = X2))
 }
@@ -513,8 +493,7 @@ computeGammaUnSVD <- function(U, V, singularVals, ellStart, gStart, epsilonStart
 #' one-step ML estimation of submodels. See section "One-step ML estimator" of
 #' \insertCite{huynhwalsnb;textual}{WALS} for details.
 #'
-#' The argument \code{Z2start} is defined as
-#' (see section "Transformed model" in \insertCite{huynhwalsnb;textual}{WALS})
+#' The argument \code{Z2start} is defined as \insertCite{huynhwalsnb}{WALS}
 #'
 #' \deqn{
 #' \bar{Z}_{2} := \bar{X}_{2} \bar{\Delta}_{2} \bar{\Xi}^{-1/2},

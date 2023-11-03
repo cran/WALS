@@ -1,7 +1,7 @@
 #' Weighted-Average Least Squares for Negative Binomial Regression
 #'
-#' Fits an NB2 regression model using the Weighted-Average Least Squares method
-#' of \insertCite{huynhwalsnb;textual}{WALS}.
+#' Performs model averaging for NB2 regression models using the Weighted-Average
+#' Least Squares method of \insertCite{huynhwalsnb;textual}{WALS}.
 #'
 #' @details
 #' Computes WALS estimates when focus regressors (X1) are present in all
@@ -17,22 +17,26 @@ walsNB <- function(x, ...) UseMethod("walsNB", x)
 #' @rdname walsNB
 #'
 #' @inheritParams walsGLM.formula
-#' @param link specifies the link function, currently only "log" is supported.
+#' @param link specifies the link function, currently only \code{"log"} is supported.
 #' @param controlInitNB Controls estimation of starting values for one-step ML,
 #' see \code{\link[WALS]{controlNB}}.
-#' @param tol Only used if iterate = TRUE and nIt = NULL. If the Euclidean distance
-#' between the previous beta and current beta falls below tol and the absolute difference between
-#' the previous and current rho falls below tol, then the algorithm stops.
-#' @param verbose If verbose = TRUE, then it prints the iteration process of
-#' internal function \code{\link[WALS]{walsNBfitIterate}} (only relevant if iterate = TRUE).
+#' @param tol Only used if \code{iterate = TRUE} and \code{nIt = NULL}. If the
+#' Euclidean distance between the previous and current coefficient vector divided
+#' by the square root of the length of the vector falls below \code{tol} and the
+#' absolute difference between the previous and current dispersion parameter
+#' falls below \code{tol}, then the algorithm stops.
+#' See \code{\link[WALS]{walsNBfitIterate}} for more details.
+#' @param verbose If \code{verbose = TRUE}, then it prints the iteration process
+#' of internal function \code{\link[WALS]{walsNBfitIterate}}
+#' (only relevant if \code{iterate = TRUE}).
 #' @param ... Arguments for workhorse \code{\link[WALS]{walsNBfit}}.
 #'
 #'
 #' @details
 #' Formulas should always contain two parts, i.e. they should be of the form
-#' "y ~ X11 + X12 | X21 + X22", where the variables before "|" are the focus
-#' regressors (includes a constant by default) and the ones after "|" are the
-#' auxiliary regressors.
+#' "\code{y ~ X11 + X12 | X21 + X22}", where the variables before "\code{|}" are
+#' the focus regressors (includes a constant by default) and the ones after
+#' "\code{|}" are the auxiliary regressors.
 #'
 #' **WARNING:** Interactions in formula do not work properly yet.
 #' It is recommended to manually create the interactions beforehand and then
@@ -214,9 +218,8 @@ walsNB.matrix <- function(x, x2, y, link = "log", subset = NULL,
 #' @details
 #' \code{walsNB.default()} raises an error if \code{x} is not an object of class
 #' \code{"matrix"} or a class that extends \code{"matrix"}. Otherwise
-#' it calls \code{walsNB.matrix()}. It is a modified version of
-#' \code{\link[mboost]{glmboost.default}} from the \code{\link[mboost]{mboost}}
-#' package version 2.9-8 (2023-09-06) \insertCite{mboost}{WALS}.
+#' it calls \code{walsNB.matrix()}. It is a modified version of \code{glmboost.default}
+#' from the \code{mboost} package version 2.9-8 (2023-09-06) \insertCite{mboost}{WALS}.
 #'
 #' @returns \code{walsNB.default()} raises an error if \code{x} is not an object
 #' of class \code{"matrix"} or a class that extends \code{"matrix"}. Otherwise
@@ -258,23 +261,17 @@ walsNB.default <- function(x, ...) {
 #' @param keepR If \code{TRUE}, keeps the one-step ML estimators of the fully
 #' restricted model, i.e. \eqn{\tilde{\gamma}_{r}} and \eqn{\tilde{\beta}_{r}}.
 #' @param eigenSVD If \code{TRUE}, then \code{semiorthogonalize()} uses \code{svd()}
-#' to compute the eigendecomposition of \eqn{\bar{Xi}} instead of \code{eigen()}.
+#' to compute the eigendecomposition of \eqn{\bar{\Xi}} instead of \code{eigen()}.
 #' In this case, the tolerances of \code{svdTol} and \code{svdRtol} are used to
-#' determine whether \eqn{\bar{Xi}} is of full rank (need it for \eqn{\bar{Xi}^{-1/2}}).
-#' @param postmult If \code{TRUE} (default), then it computes
-#' \deqn{\bar{\Xi}^{-1/2} = H \Lambda^{-1/2} H^{\top}} instead of
-#' \deqn{\bar{\Xi}^{-1/2} = H \Lambda^{-1/2}.}
-#' The latter is used in the original MATLAB code for WALS in the linear regression model
-#' \insertCite{magnus2010growth,deluca2011stata,kumar2013normallocation,magnus2016wals}{WALS},
-#' see eq. (12) of \insertCite{magnus2016wals;textual}{WALS} for more details.
+#' determine whether \eqn{\bar{\Xi}} is of full rank (need it for \eqn{\bar{\Xi}^{-1/2}}).
 #' @param ... Arguments for internal function \code{\link[WALS]{computePosterior}}.
 #'
 #' @details The method to be specified in \code{method} mainly differ in the way
 #' they compute the fully restricted and unrestricted estimators for the
-#' transformed regressors \eqn{Z}, i.e. \eqn{\tilde{\gamma_{1r}}},
-#' \eqn{\gamma_{1u}} and \eqn{\tilde{\gamma_{2u}}}.
+#' transformed regressors \eqn{Z}, i.e. \eqn{\tilde{\gamma}_{1r}},
+#' and \eqn{\tilde{\gamma}_{u}}.
 #'
-#' \itemize{
+#' \describe{
 #' \item{"fullSVD"}{Recommended approach. First applies an SVD to \eqn{\bar{Z}_{1}}
 #' to compute \eqn{\bar{X}_{2}^{\top} \bar{M}_{1} \bar{X}_{2}}:
 #' It is used for computing the inverse of
@@ -283,25 +280,20 @@ walsNB.default <- function(x, ...) {
 #'  + \bar{g} \bar{\epsilon} X_{1}^{\top}\bar{q} \bar{q}^{\top} X_{1},}
 #'
 #' when using the Sherman-Morrison-Woodbury formula. We further leverage the
-#' SVD of \eqn{\bar{Z}_1} and additionally \eqn{\bar{Z}} to compute the fully
+#' SVD of \eqn{\bar{Z}_1} and additionally \eqn{\bar{Z}} to compute the
 #' unrestricted estimator \eqn{\tilde{\gamma}_{u}} and the fully restricted
 #' estimator \eqn{\tilde{\gamma}_{r}}. For \eqn{\tilde{\gamma}_{u}}, we simply
 #' use the SVD of \eqn{\bar{Z}} to solve the full equation system derived from
-#' the one-step ML problem
-#' (see section "Simplifications for \eqn{\tilde{\gamma}_{u}}" in
-#' the appendix of \insertCite{huynhwals;textual}{WALS} for more details.
-#' The SVD of \eqn{\bar{Z}_1} is further used in computing the model averaged
-#' estimator for the focus regressors \eqn{\hat{\gamma}_1} (see section
-#' "Simplifications for \eqn{\hat{\gamma}_1}" in
-#' \insertCite{huynhwals;textual}{WALS} for more details).
+#' the one-step ML problem for more details. The SVD of \eqn{\bar{Z}_1} is further
+#' used in computing the model averaged estimator for the focus regressors
+#' \eqn{\hat{\gamma}_1}.
 #'
-#' Described in more detail in the appendix
-#' of \insertCite{huynhwals;textual}{WALS}.}
+#' Described in more detail in the appendix of \insertCite{huynhwals;textual}{WALS}.}
 #'
 #'
-#' \item{"original"} {Computes all inverses directly using \code{solve()} and
-#' does not make use of the Sherman-Morrison-Woodbury formula for certain
-#' inverses. Specifically: directly inverts the matrix
+#' \item{"original"}{Computes all inverses directly using \code{\link[base]{solve}}
+#' and does not make use of the Sherman-Morrison-Woodbury formula for certain
+#' inverses. Specifically, it directly inverts the matrix
 #' \eqn{\bar{Z}_{1}^{\top} \bar{Z}_{1}} using \code{\link[base]{solve}}
 #' in order to compute \eqn{\bar{M}_1}. Moreover, it computes the fully
 #' unrestricted estimators of the focus regressors
@@ -313,8 +305,8 @@ walsNB.default <- function(x, ...) {
 #' debugging.}
 #' }
 #'
-#' All variables in the code that are contain "start" in their name feature the
-#' starting values for the one-step ML estimation of submodels. See section
+#' All variables in the code that contain "start" in their name are computed
+#' using the starting values of the one-step ML estimators. See section
 #' "One-step ML estimator" of \insertCite{huynhwalsnb}{WALS} for details.
 #'
 #' @returns A list containing
@@ -395,10 +387,10 @@ walsNB.default <- function(x, ...) {
 #'
 #' @export
 walsNBfit <- function(X1, X2, y, betaStart1, betaStart2, rhoStart, family,
-                       prior, method = c("fullSVD", "original"),
-                       svdTol = .Machine$double.eps,
-                       svdRtol = 1e-6, keepUn = FALSE, keepR = FALSE,
-                       eigenSVD = TRUE, postmult = TRUE, ...) {
+                      prior, method = c("fullSVD", "original"),
+                      svdTol = .Machine$double.eps,
+                      svdRtol = 1e-6, keepUn = FALSE, keepR = FALSE,
+                      eigenSVD = TRUE, postmult = TRUE, ...) {
   ## Sanity checks
   method <- match.arg(method)
 
@@ -466,18 +458,6 @@ walsNBfit <- function(X1, X2, y, betaStart1, betaStart2, rhoStart, family,
     # empty entries for svd
     svdZ1start <- NULL
 
-    ## Sherman-Morrison-Woodbury for (X1bar'X1bar + g*epsilon  * X1'q*q'X1)^-1
-    # Z1startinv <- solve(crossprod(Z1start, Z1start))
-    #
-    # Delta1 * (Z1bar'Z1bar)^-1 Delta1 = (X1bar'X1bar)^-1
-    # first multiply all columns with Delta1, then all rows!
-    # X1startinv <- multAllRows(Delta1 * Z1startinv, Delta1)
-    # X1X1plusinv <- ( X1startinv +
-    #                    ( (X1startinv %*% tcrossprod(X1tq, X1tq) %*% X1startinv) /
-    #                        as.numeric((1 + gStart*epsilonStart*crossprod(X1tq, X1startinv %*% X1tq)))
-    #                    )
-    # )
-
     X1tq <- colSums(X1 * qStart)
     X1X1plusinv <-  solve(crossprod(X1start, X1start) + gStart*epsilonStart*tcrossprod(X1tq, X1tq))
 
@@ -526,16 +506,7 @@ walsNBfit <- function(X1, X2, y, betaStart1, betaStart2, rhoStart, family,
   } else if (method == "original") {
     Z1y0s <- crossprod(Z1start, y0Start) - (tStart*epsilonStart)*Z1tq
     Z2y0s <- crossprod(Z2start, y0Start) - (tStart*epsilonStart)*Z2tq
-
     Z1Z1plusinv <- solve(crossprod(Z1start, Z1start) + gStart*epsilonStart*tcrossprod(Z1tq, Z1tq))
-
-    ## Sherman-Morrison-Woodbury for (Z1bar'Z1bar + g*epsilon  * Z1'q*q'Z1)^-1
-    # Z1Z1plusinv <- (   Z1startinv -
-    #                      ( (Z1startinv %*% tcrossprod(Z1tq, Z1tq) %*% Z1startinv) /
-    #                          as.numeric((1 + gStart*epsilonStart*crossprod(Z1tq, Z1startinv %*% Z1tq)))
-    #                      )
-    # )
-
     A <- crossprod(Z2start, Z1start) + gStart*epsilonStart*tcrossprod(Z2tq, Z1tq)
     gammaUn2 <- -(A %*% Z1Z1plusinv %*% Z1y0s) + Z2y0s
 
@@ -633,16 +604,16 @@ walsNBfit <- function(X1, X2, y, betaStart1, betaStart2, rhoStart, family,
 #' @param controlInitNB Controls estimation of starting values for one-step ML,
 #' see \code{\link[WALS]{controlNB}}.
 #' @param tol Only used if \code{iterate = TRUE} and \code{nIt = NULL}. If the
-#' Euclidean distance between the previous and current coefficient divided by
-#' the square root of the length of the vector falls below tol and the absolute
-#' difference between the previous and current dispersion parameter falls below
-#' tol, then the algorithm stops. See below for more details.
-#' @param ... Arguments to be passed to the workhorse function walsNBfit.
+#' Euclidean distance between the previous and current coefficient vector divided
+#' by the square root of the length of the vector falls below \code{tol} and the
+#' absolute difference between the previous and current dispersion parameter
+#' falls below \code{tol}, then the algorithm stops. See below for more details.
+#' @param ... Arguments to be passed to the workhorse function \code{\link[WALS]{walsNBfit}}.
 #'
 #' @returns A list containing all elements returned from \code{\link[WALS]{walsNBfit}}
 #' and additionally the following elements:
 #' \item{y}{If \code{keepY = TRUE}, contains the response vector.}
-#' \item{x}{list. If \code{keepX} is true, then it is a list with elements
+#' \item{x}{list. If \code{keepX = TRUE}, then it is a list with elements
 #' \code{x1} and \code{x2} containing the design matrices of the focus and
 #' auxiliary regressors, respectively.}
 #' \item{initialFit}{List containing information (e.g. convergence) on the
@@ -750,7 +721,7 @@ walsNBfitIterate <- function(y, X1, X2, link = "log", na.action = NULL,
   betaStart2 <- betaStart[(k1 + 1L):(k1 + k2)]
   rhoStart <- nb2$theta
 
-  # simply reuse iterative code by setting nIt = 1
+  # reuse iterative code by setting nIt = 1
   if (!iterate) nIt <- 1
 
 
@@ -907,7 +878,9 @@ print.summary.walsNB <- function(x, digits = max(3, getOption("digits") - 3), ..
 
 ## Helper functions ------------------------------------------------------------
 
-#' Define controllable parameters of initial NB fit
+#' Control function for initial NB fit
+#'
+#' Defines controllable parameters of initial NB fit in \code{\link[WALS]{walsNB}}.
 #'
 #' @param start Optional starting values for \code{\link[WALS]{fitNB2}}. Only used if
 #' \code{initMASS = FALSE}.
@@ -923,8 +896,8 @@ print.summary.walsNB <- function(x, digits = max(3, getOption("digits") - 3), ..
 #' is estimated via \code{\link[MASS]{glm.nb}} and \code{initThetaMASS} is ignored.
 #' If \code{FALSE}, then the initial fit is estimated by minimizing the
 #' log-likelihood using \code{\link[stats]{optim}}.
-#' @param restricted If TRUE, then initial fit in \code{\link[WALS]{fitNB2}} only
-#' considers the focus regressors. By default \code{FALSE}, then the unrestricted
+#' @param restricted If \code{TRUE}, then initial fit in \code{\link[WALS]{fitNB2}}
+#' only considers the focus regressors. By default \code{FALSE}, then the unrestricted
 #' model is estimated in \code{\link[WALS]{fitNB2}} (i.e. all regressors).
 #' @param eps Controls argument \code{eps} in \code{\link[WALS]{fitNB2}} for generating
 #' starting value for \code{logTheta} (\eqn{\log{\theta}}) via \code{\link[MASS]{theta.ml}}.

@@ -28,6 +28,7 @@ test_that("some class methods of wals", {
 })
 
 test_that("Estimates match Magnus et al. (2010), Journal of Econometrics", {
+  tol <- 1e-10
   # original values from Table 2 in Magnus et al. (2010)
   coefVals <- c("(Intercept)" = .0594,
                 "lgdp60" = -.0156,
@@ -55,11 +56,12 @@ test_that("Estimates match Magnus et al. (2010), Journal of Econometrics", {
                     law + tropics + avelf + confucian, data = GrowthMPP,
                   prior = laplace(), prescale = FALSE)
 
-  expect_identical(round(coef(fitWals), 4), coefVals)
-  expect_identical(round(sqrt(diag(vcov(fitWals))), 4), seVals)
+  expect_equal(round(coef(fitWals), 4), coefVals, tolerance = tol)
+  expect_equal(round(sqrt(diag(vcov(fitWals))), 4), seVals, tolerance = tol)
 })
 
 test_that("Estimates match De Luca & Magnus (2011), The Stata Journal", {
+  tol <- 1e-10
   # original values from table on p. 534 of De Luca & Magnus (2011)
   coefVals <- c("(Intercept)" = .0617514,
                 "lgdp60" = -.0156501,
@@ -88,8 +90,8 @@ test_that("Estimates match De Luca & Magnus (2011), The Stata Journal", {
                     law + tropics + avelf + confucian, data = GrowthMPP,
                   prior = laplace(), prescale = TRUE)
 
-  expect_identical(round(coef(fitWals), 7), coefVals)
-  expect_identical(round(sqrt(diag(vcov(fitWals))), 7), seVals)
+  expect_equal(round(coef(fitWals), 7), coefVals, tolerance = tol)
+  expect_equal(round(sqrt(diag(vcov(fitWals))), 7), seVals, tolerance = tol)
 })
 
 test_that("walsMatrix coefs and covmat equal to wals", {
@@ -140,17 +142,9 @@ test_that("Predictions are correct", {
 
   # add artificial factors for testing
   dd$englishFactor <- as.factor(dd$english > 20)
-  # dd$englishFactor <- ifelse(dd$english > 20, "high", "medium")
-  # dd$englishFactor[dd$english < 0.3] <- "low"
-  # dd$englishFactor <- as.factor(dd$englishFactor)
   dd$incomeFactor <- as.factor(dd$income > 17)
-  # dd$incomeFactor <- ifelse(dd$income > 17, "h", "m")
-  # dd$incomeFactor[dd$income < 8] <- "l"
-  # dd$incomeFactor <- as.factor(dd$incomeFactor)
 
   fWals <- math ~ read + stratio | englishFactor + lunch + expenditure + incomeFactor
-  # fWals <- math ~ read + stratio + englishFactor | lunch + expenditure + incomeFactor
-
 
   walsEst <- wals(fWals, data = dd, method = "original", eigenSVD = TRUE,
                   prior = weibull(), keepY = TRUE, keepX = TRUE)

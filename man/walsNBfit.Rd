@@ -25,10 +25,10 @@ walsNBfit(
 }
 \arguments{
 \item{X1}{Design matrix for focus regressors. Usually includes a constant
-(column full of 1s) and can be generated using model.matrix().}
+(column full of 1s) and can be generated using \code{\link[stats]{model.matrix}}.}
 
 \item{X2}{Design matrix for auxiliary regressors. Usually does not include
-a constant column and can also be generated using model.matrix().}
+a constant column and can also be generated using \code{\link[stats]{model.matrix}}.}
 
 \item{y}{Count response as vector.}
 
@@ -64,16 +64,22 @@ unrestricted model, i.e. \eqn{\tilde{\gamma}_{u}} and \eqn{\tilde{\beta}_{u}}.}
 restricted model, i.e. \eqn{\tilde{\gamma}_{r}} and \eqn{\tilde{\beta}_{r}}.}
 
 \item{eigenSVD}{If \code{TRUE}, then \code{semiorthogonalize()} uses \code{svd()}
-to compute the eigendecomposition of \eqn{\bar{Xi}} instead of \code{eigen()}.
+to compute the eigendecomposition of \eqn{\bar{\Xi}} instead of \code{eigen()}.
 In this case, the tolerances of \code{svdTol} and \code{svdRtol} are used to
-determine whether \eqn{\bar{Xi}} is of full rank (need it for \eqn{\bar{Xi}^{-1/2}}).}
+determine whether \eqn{\bar{\Xi}} is of full rank (need it for \eqn{\bar{\Xi}^{-1/2}}).}
 
 \item{postmult}{If \code{TRUE} (default), then it computes
-\deqn{\bar{\Xi}^{-1/2} = H \Lambda^{-1/2} H^{\top}} instead of
-\deqn{\bar{\Xi}^{-1/2} = H \Lambda^{-1/2}.}
-The latter is used in the original MATLAB code for WALS in the linear regression model
-\insertCite{magnus2010growth,deluca2011stata,kumar2013normallocation,magnus2016wals}{WALS},
-see eq. (12) of \insertCite{magnus2016wals;textual}{WALS} for more details.}
+\deqn{\bar{Z}_{2} = \bar{X}_{2} \bar{\Delta}_{2} \bar{T} \bar{\Lambda}^{-1/2} \bar{T}^{\top},}
+where \eqn{\bar{T}} contains the eigenvectors and \eqn{\bar{\Lambda}} the
+eigenvalues from the eigenvalue decomposition
+\deqn{\bar{\Xi} = \bar{T} \bar{\Lambda} \bar{T}^{\top},}
+instead of
+\deqn{\bar{Z}_{2} = \bar{X}_{2} \bar{\Delta}_{2} \bar{T} \bar{\Lambda}^{-1/2}.}
+See \insertCite{huynhwals;textual}{WALS} for more details. The latter is used
+in the original MATLAB code for WALS in the linear regression model,
+see eq. (12) of \insertCite{magnus2016wals;textual}{WALS}.
+The first form is required in eq. (9) of \insertCite{deluca2018glm;textual}{WALS}.
+\strong{Thus, it is not recommended to set \code{postmult = FALSE}.}}
 
 \item{...}{Arguments for internal function \code{\link[WALS]{computePosterior}}.}
 }
@@ -130,10 +136,10 @@ Workhorse function behind \code{\link{walsNB}} and used internally in
 \details{
 The method to be specified in \code{method} mainly differ in the way
 they compute the fully restricted and unrestricted estimators for the
-transformed regressors \eqn{Z}, i.e. \eqn{\tilde{\gamma_{1r}}},
-\eqn{\gamma_{1u}} and \eqn{\tilde{\gamma_{2u}}}.
+transformed regressors \eqn{Z}, i.e. \eqn{\tilde{\gamma}_{1r}},
+and \eqn{\tilde{\gamma}_{u}}.
 
-\itemize{
+\describe{
 \item{"fullSVD"}{Recommended approach. First applies an SVD to \eqn{\bar{Z}_{1}}
 to compute \eqn{\bar{X}_{2}^{\top} \bar{M}_{1} \bar{X}_{2}}:
 It is used for computing the inverse of
@@ -142,24 +148,19 @@ It is used for computing the inverse of
  + \bar{g} \bar{\epsilon} X_{1}^{\top}\bar{q} \bar{q}^{\top} X_{1},}
 
 when using the Sherman-Morrison-Woodbury formula. We further leverage the
-SVD of \eqn{\bar{Z}_1} and additionally \eqn{\bar{Z}} to compute the fully
+SVD of \eqn{\bar{Z}_1} and additionally \eqn{\bar{Z}} to compute the
 unrestricted estimator \eqn{\tilde{\gamma}_{u}} and the fully restricted
 estimator \eqn{\tilde{\gamma}_{r}}. For \eqn{\tilde{\gamma}_{u}}, we simply
 use the SVD of \eqn{\bar{Z}} to solve the full equation system derived from
-the one-step ML problem
-(see section "Simplifications for \eqn{\tilde{\gamma}_{u}}" in
-the appendix of \insertCite{huynhwals;textual}{WALS} for more details.
-The SVD of \eqn{\bar{Z}_1} is further used in computing the model averaged
-estimator for the focus regressors \eqn{\hat{\gamma}_1} (see section
-"Simplifications for \eqn{\hat{\gamma}_1}" in
-\insertCite{huynhwals;textual}{WALS} for more details).
+the one-step ML problem for more details. The SVD of \eqn{\bar{Z}_1} is further
+used in computing the model averaged estimator for the focus regressors
+\eqn{\hat{\gamma}_1}.
 
-Described in more detail in the appendix
-of \insertCite{huynhwals;textual}{WALS}.}
+Described in more detail in the appendix of \insertCite{huynhwals;textual}{WALS}.}
 
-\item{"original"} {Computes all inverses directly using \code{solve()} and
-does not make use of the Sherman-Morrison-Woodbury formula for certain
-inverses. Specifically: directly inverts the matrix
+\item{"original"}{Computes all inverses directly using \code{\link[base]{solve}}
+and does not make use of the Sherman-Morrison-Woodbury formula for certain
+inverses. Specifically, it directly inverts the matrix
 \eqn{\bar{Z}_{1}^{\top} \bar{Z}_{1}} using \code{\link[base]{solve}}
 in order to compute \eqn{\bar{M}_1}. Moreover, it computes the fully
 unrestricted estimators of the focus regressors
@@ -171,8 +172,8 @@ This method should only be used as reference and for easier
 debugging.}
 }
 
-All variables in the code that are contain "start" in their name feature the
-starting values for the one-step ML estimation of submodels. See section
+All variables in the code that contain "start" in their name are computed
+using the starting values of the one-step ML estimators. See section
 "One-step ML estimator" of \insertCite{huynhwalsnb}{WALS} for details.
 }
 \examples{
