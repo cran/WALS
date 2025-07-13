@@ -1,9 +1,9 @@
 Package: WALS
-Version: 0.2.5
-Date: 2024-06-21
+Version: 0.2.6
+Date: 2025-07-11
 Title: Weighted-Average Least Squares Model Averaging
 Authors@R: 
-    person("Kevin", "Huynh", email = "Kevin.Huynh@unibas.ch",
+    person("Kevin", "Huynh", email = "kevin.huynh-dev@gmx.ch",
            role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-4621-2274"))
 Depends: R (>= 4.0.0)
@@ -26,10 +26,10 @@ BugReports: https://github.com/kevhuy/WALS/issues
 LazyData: true
 RdMacros: Rdpack
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2024-06-21 08:15:20 UTC; huykev00
-Author: Kevin Huynh [aut, cre] (<https://orcid.org/0000-0002-4621-2274>)
-Maintainer: Kevin Huynh <Kevin.Huynh@unibas.ch>
+Packaged: 2025-07-13 08:17:59 UTC; kevin
+Author: Kevin Huynh [aut, cre] (ORCID: <https://orcid.org/0000-0002-4621-2274>)
+Maintainer: Kevin Huynh <kevin.huynh-dev@gmx.ch>
 Repository: CRAN
-Date/Publication: 2024-06-21 08:40:02 UTC
+Date/Publication: 2025-07-13 23:00:02 UTC
